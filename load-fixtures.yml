@@ -1,0 +1,10 @@
+- name: Load fixtures into DynamoDB
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  tasks:
+    - shell: python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < fixtures.yml > tmp/fixtures.json
+    - command: "aws dynamodb batch-write-item
+        --request-items file://tmp/fixtures.json
+        "

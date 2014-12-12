@@ -1,0 +1,35 @@
+- name: Deploy notifier
+  hosts: localhost
+  connection: local
+  gather_facts: False
+
+  vars:
+    aws_region: us-east-1
+
+  tasks:
+    - file: path=tmp state=directory
+    - command: zip tmp/julklapp.zip julklapp.py
+
+    - shell: python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < cloudformation/wichtel-notifier.yml > tmp/wichtel-notifier.json
+    - cloudformation:
+        stack_name: "wichtel-notfier"
+        template: tmp/wichtel-notifier.json
+        state: present
+      register: wichtel_notifier
+
+    - command: "aws lambda create-function
+        --function-name wichtel-notifier
+        --runtime python2.7
+        --role {{ wichtel_notifier.stack_outputs.LambdaExecutionRole }}
+        --handler julklapp.lambda_handler
+        --zip-file fileb://tmp/julklapp.zip
+        --region {{ aws_region }}"
+      register: result
+      failed_when: >
+        result.rc != 0 and ('Function already exist' not in result.stderr)
+      changed_when: "result.rc == 0"
+
+    - command: "aws lambda update-function-code
+        --function-name wichtel-notifier
+        --zip-file fileb://tmp/julklapp.zip
+        --region {{ aws_region }}"
