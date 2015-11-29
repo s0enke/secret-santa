@@ -73,6 +73,7 @@ ansible-playbook load-fixtures.yml
 
 ## Resources
 
-### Mathematical background
+### Theoretical background
 
+ - https://www.lix.polytechnique.fr/~liberti/sesan.pdf
  - https://en.wikipedia.org/wiki/Derangement
