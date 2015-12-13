@@ -69,6 +69,7 @@ ansible-playbook load-fixtures.yml
  - Auth with Cognito/OIDC
  - make it entirely AWS region agnostic
  - Learn more theory (permutations, derangement etc.) and apply more mathematical terms
+ - statistics about the entropy (statistics across many runs)
  - store and remember last "draws" (Ziehungen)
 
 ## Resources
