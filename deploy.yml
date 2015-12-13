@@ -8,10 +8,7 @@
 
   tasks:
 
-    - include: roles/include/tasks/lambda.yml
-      vars:
-        function_name: wichtel-notifier
-
-    - include: roles/include/tasks/lambda.yml
-      vars:
-        function_name: wichtel-email
+    - include: roles/include/tasks/lambda.yml function_name="{{ item }}"
+      with_items:
+        - wichtel-notifier
+        - wichtel-email
