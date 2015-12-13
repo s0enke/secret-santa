@@ -10,10 +10,10 @@
     - file: path=tmp state=directory
     - command: zip tmp/julklapp.zip julklapp.py
 
-    - shell: python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < cloudformation/wichtel-notifier.yml > tmp/wichtel-notifier.json
     - cloudformation:
         stack_name: "wichtel-notfier"
-        template: tmp/wichtel-notifier.json
+        template: cloudformation/wichtel-notifier.yml
+        template_format: yaml
         state: present
       register: wichtel_notifier
 
@@ -41,10 +41,10 @@
         --region {{ aws_region }}"
 
     # XXX copy and paste
-    - shell: python -c 'import sys, yaml, json; json.dump(yaml.load(sys.stdin), sys.stdout, indent=4)' < cloudformation/wichtel-email.yml > tmp/wichtel-email.json
     - cloudformation:
         stack_name: "wichtel-email"
-        template: tmp/wichtel-email.json
+        template: cloudformation/wichtel-email.yml 
+        template_format: yaml
         state: present
         template_parameters:
           LambdaEmailFunctionName: wichtel-email
