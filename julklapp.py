@@ -3,6 +3,7 @@ import itertools
 import random
 import copy
 import boto3
+import json
 from collections import defaultdict
 
 def lambda_handler(event, context):
@@ -80,30 +81,15 @@ def lambda_handler(event, context):
         break
 
     print donations
-    return
-
-    session = boto3.session.Session(region_name='us-east-1')
-    client = session.client('ses')
-
-
+    lambda_client = boto3.client('lambda')
     for donor,receiver in donations.items():
-        to_email = '%s@ruempler.eu' % receiver
-        response = client.send_email(
-                Source='Die Wichtelwuerfelmaschine <soenke@ruempler.eu>',
-                Destination={
-                    'ToAddresses': [
-                        'soenke@ruempler.eu',
-                        ],
-                    },
-                Message={
-                    'Subject': {
-
-                        'Data': 'Deine Wichtelwahl',
-                        },
-                    'Body': {
-                        'Text': {
-                            'Data': "Hallo %s!\n\nDieses Jahr darfst du %s ein Geschenk machen! Gruss, deine automatische Wichtelmaschine." % (donor, receiver),
-                            },
-                        }
-                    },
-                )
+        response = lambda_client.invoke(
+            FunctionName='wichtel-email',
+            InvocationType="Event",
+            Payload=json.dumps(
+                {
+                    "donor": donor,
+                    "receiver": receiver,
+                }
+            ),
+        )
