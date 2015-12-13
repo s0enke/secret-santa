@@ -7,65 +7,11 @@
     aws_region: us-east-1
 
   tasks:
-    - file: path=tmp state=directory
-    - command: zip tmp/julklapp.zip julklapp.py
 
-    - cloudformation:
-        stack_name: "wichtel-notfier"
-        template: cloudformation/wichtel-notifier.yml
-        template_format: yaml
-        state: present
-      register: wichtel_notifier
+    - include: roles/include/tasks/lambda.yml
+      vars:
+        function_name: wichtel-notifier
 
-    - command: "aws lambda create-function
-        --function-name wichtel-notifier
-        --runtime python2.7
-        --role {{ wichtel_notifier.stack_outputs.LambdaExecutionRole }}
-        --handler julklapp.lambda_handler
-        --zip-file fileb://tmp/julklapp.zip
-        --timeout 60
-        --region {{ aws_region }}"
-      register: result
-      failed_when: >
-        result.rc != 0 and ('Function already exist' not in result.stderr)
-      changed_when: "result.rc == 0"
-
-    - command: "aws lambda update-function-configuration
-        --function-name wichtel-notifier
-        --timeout 60
-        --region {{ aws_region }}"
-
-    - command: "aws lambda update-function-code
-        --function-name wichtel-notifier
-        --zip-file fileb://tmp/julklapp.zip
-        --region {{ aws_region }}"
-
-    # XXX copy and paste
-    - cloudformation:
-        stack_name: "wichtel-email"
-        template: cloudformation/wichtel-email.yml 
-        template_format: yaml
-        state: present
-        template_parameters:
-          LambdaEmailFunctionName: wichtel-email
-      register: wichtel_email
-
-    - file: path=tmp state=directory
-    - command: zip tmp/email_notifier.zip email_notifier.py
-
-    - command: "aws lambda create-function
-        --function-name wichtel-email
-        --runtime python2.7
-        --role {{ wichtel_email.stack_outputs.LambdaExecutionRole }}
-        --handler email_notifier.lambda_handler
-        --zip-file fileb://tmp/email_notifier.zip
-        --region {{ aws_region }}"
-      register: result
-      failed_when: >
-        result.rc != 0 and ('Function already exist' not in result.stderr)
-      changed_when: "result.rc == 0"
-
-    - command: "aws lambda update-function-code
-        --function-name wichtel-email
-        --zip-file fileb://tmp/email_notifier.zip
-        --region {{ aws_region }}"
+    - include: roles/include/tasks/lambda.yml
+      vars:
+        function_name: wichtel-email

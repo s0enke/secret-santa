@@ -1,0 +1,34 @@
+---
+
+- cloudformation:
+    stack_name: "{{ function_name }}"
+    template: "cloudformation/{{ function_name }}.yml"
+    template_format: yaml
+    state: present
+  register: cfn_output
+
+- file: path=tmp state=directory
+- command: "zip tmp/{{ function_name }}.zip {{ function_name }}.py"
+
+- command: "aws lambda create-function
+    --function-name {{ function_name }}
+    --runtime {{ runtime | default('python2.7') }}
+    --role {{ cfn_output.stack_outputs.LambdaExecutionRole }}
+    --handler {{ function_name }}.lambda_handler
+    --zip-file fileb://tmp/{{ function_name }}.zip
+    --timeout {{ timeout | default(60) }}
+    --region {{ aws_region }}"
+  register: result
+  failed_when: >
+    result.rc != 0 and ('Function already exist' not in result.stderr)
+  changed_when: "result.rc == 0"
+
+- command: "aws lambda update-function-configuration
+    --function-name {{ function_name }}
+    --timeout {{ timeout | default(60) }}
+    --region {{ aws_region }}"
+
+- command: "aws lambda update-function-code
+    --function-name {{ function_name }}
+    --zip-file fileb://tmp/{{ function_name }}.zip
+    --region {{ aws_region }}"
