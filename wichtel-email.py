@@ -3,7 +3,7 @@ import boto3
 def lambda_handler(event, context):
     donor = event['donor']
     receiver = event['receiver']
-    to_email = '%s@ruempler.eu' % 'soenke'
+    to_email = '%s@ruempler.eu' % donor
 
     session = boto3.session.Session(region_name='us-east-1')
     client = session.client('ses')
@@ -18,7 +18,7 @@ def lambda_handler(event, context):
         Message={
             'Subject': {
 
-                'Data': 'Deine Wichtelwahl (Versuch Nr. 2)',
+                'Data': 'Deine Wichtelwahl 2016',
                 },
             'Body': {
                 'Text': {
